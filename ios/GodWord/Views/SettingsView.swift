@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 /// 설정 – 서버 주소(개발용), 연결 확인, 상담 안내
 struct SettingsView: View {
@@ -7,6 +8,10 @@ struct SettingsView: View {
     @State private var status: String?
     @State private var checking = false
     @FocusState private var editingURL: Bool
+    @AppStorage(Consent.versionKey) private var consentVersion = ""
+    @AppStorage(Consent.dateKey) private var consentDate = 0.0
+    @Environment(\.modelContext) private var context
+    @State private var confirmWithdraw = false
 
     var body: some View {
         NavigationStack {
@@ -55,12 +60,41 @@ struct SettingsView: View {
                     }
                 }
 
+                Section {
+                    LabeledContent(
+                        "동의한 날",
+                        value: consentDate > 0
+                            ? Date(timeIntervalSince1970: consentDate).formatted(date: .long, time: .omitted)
+                            : "-"
+                    )
+                    NavigationLink("동의 내용 보기") {
+                        ConsentView(readOnly: true)
+                    }
+                    Button("동의 철회 및 데이터 삭제", role: .destructive) {
+                        confirmWithdraw = true
+                    }
+                } header: {
+                    Text("개인정보")
+                } footer: {
+                    Text("동의를 철회하면 이 기기의 처방 기록이 모두 지워지고 처음 화면으로 돌아가요.")
+                }
+
                 Section("정보") {
                     LabeledContent("버전", value: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "-")
                     LabeledContent("기기 ID", value: String(APIClient.deviceID.prefix(8)))
                 }
             }
             .navigationTitle("설정")
+            .confirmationDialog(
+                "동의를 철회할까요?",
+                isPresented: $confirmWithdraw,
+                titleVisibility: .visible
+            ) {
+                Button("철회하고 기록 모두 삭제", role: .destructive) { withdraw() }
+                Button("취소", role: .cancel) {}
+            } message: {
+                Text("이 기기에 저장된 처방 기록이 모두 삭제되며 되돌릴 수 없어요.")
+            }
             .scrollDismissesKeyboard(.interactively)
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
@@ -73,6 +107,14 @@ struct SettingsView: View {
                 }
             }
         }
+    }
+
+    private func withdraw() {
+        try? context.delete(model: SavedPrescription.self)
+        try? context.save()
+        UserDefaults.standard.removeObject(forKey: "remainingToday")
+        consentDate = 0
+        consentVersion = "" // ContentView가 다시 동의 화면을 보여줌
     }
 
     private func check() async {

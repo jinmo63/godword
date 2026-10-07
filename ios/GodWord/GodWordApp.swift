@@ -16,6 +16,19 @@ struct GodWordApp: App {
 }
 
 struct ContentView: View {
+    @AppStorage(Consent.versionKey) private var consentVersion = ""
+
+    var body: some View {
+        if consentVersion != Consent.version {
+            // 처음 실행했거나 동의 문구가 바뀌었으면 동의부터 받습니다
+            OnboardingView()
+        } else {
+            MainTabView()
+        }
+    }
+}
+
+struct MainTabView: View {
     var body: some View {
         TabView {
             HomeView()
