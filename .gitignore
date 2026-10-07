@@ -18,3 +18,4 @@ tools/cloudflared
 
 # 프롬프트 테스트 결과 (매번 새로 생성)
 prompt-test/results/
+tools/gh
