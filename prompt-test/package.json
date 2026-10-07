@@ -1,0 +1,14 @@
+{
+  "name": "godword-prompt-test",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --env-file=.env test.mjs",
+    "quick": "node --env-file=.env test.mjs --quick",
+    "one": "node --env-file=.env test.mjs --only",
+    "compare": "node compare.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.131.0"
+  }
+}

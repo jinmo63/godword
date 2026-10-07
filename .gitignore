@@ -1,0 +1,20 @@
+# macOS
+.DS_Store
+
+# 비밀 값 (API 키, 토큰) – 절대 올리지 않음
+.env
+.env.*
+!.env.example
+ios/Config/Kakao.xcconfig
+
+# 설치 파일·빌드 결과 (다시 만들 수 있음)
+node_modules/
+server/.next/
+server/next-env.d.ts
+*.tsbuildinfo
+ios/**/xcuserdata/
+ios/**/DerivedData/
+tools/cloudflared
+
+# 프롬프트 테스트 결과 (매번 새로 생성)
+prompt-test/results/

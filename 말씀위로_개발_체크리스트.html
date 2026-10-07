@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>말씀의 위로 개발 체크리스트</title>
+<style>
+  :root {
+    --bg: #F5F7F8; --card: #FFFFFF; --text: #16202B; --muted: #5D6A79;
+    --line: #D9E0E6; --accent: #1F6F78; --accent-soft: #DCEBEC; --warn: #9A5B13; --warn-soft: #FBF0E1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #10161D; --card: #18212B; --text: #E6ECF1; --muted: #9AA8B6;
+      --line: #2A3643; --accent: #5BB3BC; --accent-soft: #1D3438; --warn: #E8B36B; --warn-soft: #33281A;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 32px 16px 64px; }
+  header { margin-bottom: 24px; }
+  .eyebrow { color: var(--accent); font-weight: 700; font-size: 13px; letter-spacing: .08em; }
+  h1 { font-size: 28px; margin: 4px 0 8px; }
+  .sub { color: var(--muted); margin: 0; font-size: 15px; }
+  .progress-box {
+    position: sticky; top: 0; z-index: 5; background: var(--bg);
+    padding: 12px 0; margin-bottom: 8px;
+  }
+  .progress-row { display: flex; align-items: center; gap: 12px; }
+  .bar { flex: 1; height: 10px; background: var(--line); border-radius: 99px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .25s; }
+  .pct { font-weight: 700; font-variant-numeric: tabular-nums; min-width: 92px; text-align: right; font-size: 14px; }
+  .tools { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  button {
+    font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 8px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--card); color: var(--text);
+  }
+  button:hover { border-color: var(--accent); }
+  section {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 20px 20px 12px; margin-top: 16px;
+  }
+  .sec-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  h2 { font-size: 19px; margin: 0; }
+  .sec-count { color: var(--muted); font-size: 13px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .sec-desc { color: var(--muted); font-size: 14px; margin: 4px 0 8px; }
+  h3 { font-size: 15px; margin: 18px 0 4px; color: var(--accent); }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li label {
+    display: flex; gap: 12px; align-items: flex-start; padding: 9px 4px;
+    border-bottom: 1px solid var(--line); cursor: pointer;
+  }
+  li:last-child label { border-bottom: none; }
+  input[type=checkbox] { width: 18px; height: 18px; margin-top: 3px; flex: none; accent-color: var(--accent); }
+  .txt { font-size: 15px; }
+  .txt small { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+  input:checked + .txt { color: var(--muted); text-decoration: line-through; }
+  input:checked + .txt small { text-decoration: none; }
+  .tag {
+    display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 99px;
+    margin-left: 6px; vertical-align: 2px; background: var(--warn-soft); color: var(--warn);
+  }
+  .tag.core { background: var(--accent-soft); color: var(--accent); }
+  .note {
+    margin-top: 24px; font-size: 13px; color: var(--muted);
+    border-top: 1px solid var(--line); padding-top: 16px;
+  }
+  @media print {
+    .progress-box .tools { display: none; }
+    .progress-box { position: static; }
+    section { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">말씀의 위로 (GodWord) · iOS</div>
+    <h1>개발 순서 · 준비 사항 체크리스트</h1>
+    <p class="sub">16주 일정 기준. 체크한 항목은 이 브라우저에 자동으로 저장됩니다.</p>
+  </header>
+
+  <div class="progress-box">
+    <div class="progress-row">
+      <div class="bar"><i id="bar"></i></div>
+      <div class="pct" id="pct">0 / 0</div>
+    </div>
+    <div class="tools">
+      <button id="print">인쇄 / PDF 저장</button>
+      <button id="reset">체크 모두 해제</button>
+    </div>
+  </div>
+
+  <div id="list"></div>
+
+  <p class="note">
+    사업자등록·통신판매업 신고, 개인정보 관련 항목은 법적 요건이 바뀔 수 있으니 출시 전에 최신 기준을 다시 확인하세요.<br>
+    <span class="tag">먼저</span> 처리에 시간이 걸리는 항목 &nbsp; <span class="tag core">핵심</span> 앱 품질·심사에 직접 영향을 주는 항목
+  </p>
+</div>
+
+<script>
+const DATA = [
+  { title: "1. 0주차에 바로 신청할 것", desc: "승인이나 회신에 시간이 걸리므로 개발과 동시에 시작합니다.", groups: [{ items: [
+    ["Apple Developer Program 가입 (연 $99)", "승인까지 며칠이 걸릴 수 있음", "먼저"],
+    ["App Store Connect 계약·세금·은행 정보 등록", "유료 앱 계약이 끝나야 구독 상품 판매 가능", "먼저"],
+    ["App Store Small Business Program 신청", "수수료 15% 적용 (손익분기 140명의 전제)", "먼저"],
+    ["성경 번역본 사용권 문의", "개역개정은 대한성서공회에 문의, 다른 번역본 저작권 상태도 확인", "먼저"],
+    ["사업자 관련 확인", "사업자등록, 통신판매업 신고, 세금 처리 방식", "먼저"],
+  ]}]},
+  { title: "2. 개발 환경과 계정 준비", groups: [{ items: [
+    ["Mac + 최신 Xcode, 테스트용 아이폰"],
+    ["Anthropic 계정, API 키 발급", "결제 수단과 월 사용 한도 설정"],
+    ["Vercel 계정 (서버)"],
+    ["Supabase 또는 Firebase 계정 (DB·로그인)"],
+    ["Kakao Developers 앱 등록", "카카오톡 공유용 앱 키"],
+    ["Figma (디자인)"],
+    ["GitHub 저장소 (코드 관리)"],
+  ]}]},
+  { title: "3. 개발 순서 (16주)", groups: [
+    { sub: "0–1주 · 기획과 MVP 범위", items: [
+      ["MVP 기능 확정", "4가지 처방 모드, 결과 카드, 하루 3회 무료 제한"],
+      ["화면 흐름 정리", "온보딩 → 모드 선택 → 입력 → 로딩 → 결과"],
+      ["프롬프트 초안 작성과 품질 테스트", "실제 고민 예시 20~30개로 Claude 답변 확인", "핵심"],
+      ["결과 데이터 형식(JSON) 정하기", "구절, 위로 편지, 기도문, 5지표 점수"],
+    ]},
+    { sub: "2주 · 백엔드 API 서버", items: [
+      ["Vercel/Next.js API 엔드포인트 만들기"],
+      ["Claude API 키는 서버 환경변수에만 보관", "앱에는 절대 넣지 않음", "핵심"],
+      ["사용 횟수 체크", "무료 3회, 베이직 20회"],
+      ["성경 DB 구절 검증", "DB에 없는 구절은 걸러내거나 다시 생성", "핵심"],
+      ["요청 속도 제한(rate limit)과 오류 처리"],
+    ]},
+    { sub: "3주 · 디자인 (Figma)", items: [
+      ["핵심 화면 디자인", "입력, 로딩, 결과, 공유 카드, 구독 안내"],
+      ["큰 글씨(Dynamic Type)와 다크모드 확인"],
+      ["앱 아이콘"],
+    ]},
+    { sub: "4–9주 · iOS 앱 개발 (SwiftUI)", items: [
+      ["TabView + NavigationStack으로 화면 구조"],
+      ["async/await + Codable로 서버 통신"],
+      ["Swift Charts로 5지표 차트"],
+      ["결과 카드 공유", "ImageRenderer + ShareLink + 카카오 SDK"],
+      ["Sign in with Apple 로그인"],
+      ["히스토리 저장"],
+      ["매일 아침 말씀 푸시 (APNs)"],
+      ["앱 안에서 계정 삭제 기능", "계정을 만드는 앱은 심사 필수", "핵심"],
+    ]},
+    { sub: "10–11주 · 구독 결제 (StoreKit 2)", items: [
+      ["App Store Connect에 구독 상품 등록", "베이직 ₩4,900, 프리미엄 ₩9,900"],
+      ["구매, 복원, 구독 상태 확인 구현"],
+      ["서버에서 구독 상태 검증 (App Store Server API)"],
+      ["Sandbox 계정으로 결제 테스트"],
+    ]},
+    { sub: "12–13주 · 테스트 (TestFlight)", items: [
+      ["교회 지인 20~30명에게 TestFlight 배포"],
+      ["피드백 반영해 프롬프트와 화면 개선"],
+      ["크래시와 느린 응답 확인"],
+    ]},
+    { sub: "14–16주 · 심사와 출시", items: [
+      ["4번 출시 준비물 완료"],
+      ["심사 제출", "반려 후 다시 제출하는 기간까지 감안"],
+    ]},
+  ]},
+  { title: "4. 출시 전 필수 준비물", groups: [{ items: [
+    ["개인정보처리방침 URL, 이용약관, 지원 페이지 URL", "", "핵심"],
+    ["민감정보 별도 동의", "종교·고민 내용은 개인정보보호법상 민감정보일 수 있음", "핵심"],
+    ["AI 처리 고지와 동의", "사용자 입력을 외부 AI(Claude)로 보낸다는 사실 안내", "핵심"],
+    ["App Store Connect 앱 개인정보 항목(App Privacy) 작성"],
+    ["연령 등급 설문"],
+    ["스크린샷, 앱 설명, 키워드", "\"말씀 묵상·기도 앱\"으로 소개, 운세 앱으로 보이지 않게"],
+    ["심사 메모에 AI 기능 설명과 테스트 계정 적기"],
+  ]}]},
+  { title: "5. 출시 이후", groups: [{ items: [
+    ["무료 → 유료 전환율 분석"],
+    ["프롬프트 지속 개선"],
+    ["API 비용 모니터링", "1인당 월 150원 가정이 맞는지 확인"],
+    ["Android와 교회 단체 구독(B2B) 확장 검토"],
+  ]}]},
+];
+
+const KEY = "godword-checklist-v1";
+let state = {};
+try { state = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { state = {}; }
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
+
+const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const list = document.getElementById("list");
+DATA.forEach((sec, si) => {
+  let html = `<section data-sec="${si}"><div class="sec-head"><h2>${esc(sec.title)}</h2><span class="sec-count"></span></div>`;
+  if (sec.desc) html += `<p class="sec-desc">${esc(sec.desc)}</p>`;
+  sec.groups.forEach((g, gi) => {
+    if (g.sub) html += `<h3>${esc(g.sub)}</h3>`;
+    html += "<ul>";
+    g.items.forEach(([t, d, tag], ii) => {
+      const id = `${si}-${gi}-${ii}`;
+      const tagHtml = tag ? `<span class="tag${tag === "핵심" ? " core" : ""}">${tag}</span>` : "";
+      html += `<li><label><input type="checkbox" data-id="${id}"${state[id] ? " checked" : ""}>` +
+              `<span class="txt">${esc(t)}${tagHtml}${d ? `<small>${esc(d)}</small>` : ""}</span></label></li>`;
+    });
+    html += "</ul>";
+  });
+  list.insertAdjacentHTML("beforeend", html + "</section>");
+});
+
+function update() {
+  const all = document.querySelectorAll("input[type=checkbox]");
+  const done = [...all].filter(c => c.checked).length;
+  document.getElementById("bar").style.width = (all.length ? done / all.length * 100 : 0) + "%";
+  document.getElementById("pct").textContent = `${done} / ${all.length} (${Math.round(done / all.length * 100)}%)`;
+  document.querySelectorAll("section").forEach(s => {
+    const b = s.querySelectorAll("input"), d = [...b].filter(c => c.checked).length;
+    s.querySelector(".sec-count").textContent = `${d} / ${b.length}`;
+  });
+}
+list.addEventListener("change", e => {
+  if (e.target.dataset.id) { state[e.target.dataset.id] = e.target.checked; save(); update(); }
+});
+document.getElementById("reset").onclick = () => {
+  if (!confirm("모든 체크를 해제할까요?")) return;
+  state = {}; save();
+  document.querySelectorAll("input[type=checkbox]").forEach(c => c.checked = false);
+  update();
+};
+document.getElementById("print").onclick = () => window.print();
+update();
+</script>
+</body>
+</html>

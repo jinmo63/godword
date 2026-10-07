@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- 개발 중 맥북의 로컬 서버(http)에 접속하기 위한 설정. 배포 서버는 https라 영향 없음 -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>개발 중 맥북의 테스트 서버에 연결하기 위해 사용합니다.</string>
+
+	<!-- 앱 기본 서버 주소 (Config/Kakao.xcconfig의 GODWORD_SERVER_URL) -->
+	<key>GODWORD_SERVER_URL</key>
+	<string>$(GODWORD_SERVER_URL)</string>
+
+	<!-- 서버 남용 방지 토큰 (Config/Kakao.xcconfig의 GODWORD_APP_TOKEN) -->
+	<key>GODWORD_APP_TOKEN</key>
+	<string>$(GODWORD_APP_TOKEN)</string>
+
+	<!-- 카카오톡 공유: 앱 키는 Config/Kakao.xcconfig에서 넣습니다 -->
+	<key>KAKAO_NATIVE_APP_KEY</key>
+	<string>$(KAKAO_NATIVE_APP_KEY)</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>kakaokompassauth</string>
+		<string>kakaolink</string>
+		<string>kakaoplus</string>
+	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>kakao$(KAKAO_NATIVE_APP_KEY)</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>

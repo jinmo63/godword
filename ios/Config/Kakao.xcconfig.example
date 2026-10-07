@@ -1,0 +1,10 @@
+// 카카오 개발자 콘솔(developers.kakao.com) > 내 애플리케이션 > 앱 키 > "네이티브 앱 키"를 = 뒤에 붙여 넣으세요.
+// 비워 두면 카카오톡 공유 대신 기본 공유 화면이 열립니다.
+KAKAO_NATIVE_APP_KEY =
+
+// 서버의 APP_TOKEN과 같은 값 (서버 남용 방지용)
+GODWORD_APP_TOKEN =
+
+// 앱 기본 서버 주소. xcconfig에서는 // 가 주석이라 https:/$()/ 형태로 씁니다.
+// Cloudflare 임시 터널 주소는 터널을 다시 켤 때마다 바뀝니다.
+GODWORD_SERVER_URL = https:/$()/your-server.example.com
