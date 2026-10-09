@@ -1,13 +1,28 @@
 import SwiftUI
 import SwiftData
 
-/// 설정 – 서버 주소(개발용), 연결 확인, 상담 안내
+/// 글씨 크기 – 시스템 설정보다 작아지지 않게 "최소 크기"로 적용합니다
+enum TextSizeOption: String, CaseIterable, Identifiable {
+    case standard = "기본"
+    case large = "크게"
+    case extraLarge = "아주 크게"
+
+    static let key = "textSize"
+    var id: String { rawValue }
+
+    var range: ClosedRange<DynamicTypeSize> {
+        switch self {
+        case .standard: .xSmall ... .accessibility5
+        case .large: .xxLarge ... .accessibility5
+        case .extraLarge: .accessibility1 ... .accessibility5
+        }
+    }
+}
+
+/// "나" 탭 – 이용 현황, 화면, 도움, 개인정보, 앱 정보 (개발 빌드에서만 개발자 설정)
 struct SettingsView: View {
-    @AppStorage(APIClient.serverURLKey) private var serverURL = APIClient.defaultServerURL
     @AppStorage("remainingToday") private var remainingToday = -1
-    @State private var status: String?
-    @State private var checking = false
-    @FocusState private var editingURL: Bool
+    @AppStorage(TextSizeOption.key) private var textSize = TextSizeOption.standard.rawValue
     @AppStorage(Consent.versionKey) private var consentVersion = ""
     @AppStorage(Consent.dateKey) private var consentDate = 0.0
     @Environment(\.modelContext) private var context
@@ -18,37 +33,22 @@ struct SettingsView: View {
             Form {
                 Section {
                     LabeledContent("오늘 남은 무료 처방", value: remainingToday >= 0 ? "\(remainingToday)회" : "-")
+                } header: {
+                    Text("이용 현황")
                 } footer: {
                     Text("무료 처방은 매일 자정(한국 시간)에 다시 채워져요.")
                 }
 
                 Section {
-                    TextField("서버 주소", text: $serverURL)
-                        .keyboardType(.URL)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                        .focused($editingURL)
-                        .submitLabel(.done)
-                        .onSubmit { Task { await check() } }
-                    Button {
-                        Task { await check() }
-                    } label: {
-                        HStack {
-                            Text("연결 확인")
-                            Spacer()
-                            if checking { ProgressView() }
-                        }
+                    Picker("글씨 크기", selection: $textSize) {
+                        ForEach(TextSizeOption.allCases) { Text($0.rawValue).tag($0.rawValue) }
                     }
-                    if let status {
-                        Text(status)
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                    }
-                    Button("기본값으로 되돌리기") { serverURL = APIClient.defaultServerURL }
+                    .pickerStyle(.segmented)
+                    .padding(.vertical, 4)
                 } header: {
-                    Text("개발용 서버")
+                    Text("화면")
                 } footer: {
-                    Text("기본 주소: \(APIClient.defaultServerURL)\n주소가 바뀌었으면 \"기본값으로 되돌리기\"를 누르세요.")
+                    Text("글씨가 작게 느껴지면 \"크게\"나 \"아주 크게\"를 골라 보세요. 말씀과 기도문은 \"듣기\" 버튼으로 들을 수 있어요.")
                 }
 
                 Section("도움이 필요할 때") {
@@ -79,12 +79,15 @@ struct SettingsView: View {
                     Text("동의를 철회하면 이 기기의 처방 기록이 모두 지워지고 처음 화면으로 돌아가요.")
                 }
 
-                Section("정보") {
+                Section("앱 정보") {
                     LabeledContent("버전", value: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "-")
-                    LabeledContent("기기 ID", value: String(APIClient.deviceID.prefix(8)))
                 }
+
+                #if DEBUG
+                DeveloperSection()
+                #endif
             }
-            .navigationTitle("설정")
+            .navigationTitle("나")
             .confirmationDialog(
                 "동의를 철회할까요?",
                 isPresented: $confirmWithdraw,
@@ -96,16 +99,6 @@ struct SettingsView: View {
                 Text("이 기기에 저장된 처방 기록이 모두 삭제되며 되돌릴 수 없어요.")
             }
             .scrollDismissesKeyboard(.interactively)
-            .toolbar {
-                ToolbarItemGroup(placement: .keyboard) {
-                    Spacer()
-                    Button("완료") {
-                        editingURL = false
-                        Task { await check() }
-                    }
-                    .fontWeight(.bold)
-                }
-            }
         }
     }
 
@@ -115,6 +108,48 @@ struct SettingsView: View {
         UserDefaults.standard.removeObject(forKey: "remainingToday")
         consentDate = 0
         consentVersion = "" // ContentView가 다시 동의 화면을 보여줌
+    }
+}
+
+#if DEBUG
+/// 개발자 설정 – 개발 빌드(Xcode에서 실행)에서만 보이고, App Store 버전에서는 숨겨집니다
+private struct DeveloperSection: View {
+    @AppStorage(APIClient.serverURLKey) private var serverURL = APIClient.defaultServerURL
+    @State private var status: String?
+    @State private var checking = false
+    @FocusState private var editingURL: Bool
+
+    var body: some View {
+        Section {
+            TextField("서버 주소", text: $serverURL)
+                .keyboardType(.URL)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .focused($editingURL)
+                .submitLabel(.done)
+                .onSubmit { Task { await check() } }
+            Button {
+                editingURL = false
+                Task { await check() }
+            } label: {
+                HStack {
+                    Text("연결 확인")
+                    Spacer()
+                    if checking { ProgressView() }
+                }
+            }
+            if let status {
+                Text(status)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+            Button("기본값으로 되돌리기") { serverURL = APIClient.defaultServerURL }
+            LabeledContent("기기 ID", value: String(APIClient.deviceID.prefix(8)))
+        } header: {
+            Text("개발자 설정")
+        } footer: {
+            Text("기본 주소: \(APIClient.defaultServerURL)\n이 항목은 개발 빌드에서만 보여요.")
+        }
     }
 
     private func check() async {
@@ -131,6 +166,7 @@ struct SettingsView: View {
         }
     }
 }
+#endif
 
 #Preview {
     SettingsView()

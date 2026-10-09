@@ -38,6 +38,7 @@ struct ResultView: View {
                     Text(prescription.prayer)
                         .lineSpacing(6)
                         .textSelection(.enabled)
+                    ListenButton(text: prescription.prayer, id: "prayer-\(date.timeIntervalSince1970)")
                 }
 
                 SectionCard(title: "오늘의 마음 날씨", symbol: "chart.bar") {
@@ -116,9 +117,13 @@ private struct VerseCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(verse.reference)
-                .font(.subheadline.bold())
-                .foregroundStyle(.tint)
+            HStack {
+                Text(verse.reference)
+                    .font(.subheadline.bold())
+                    .foregroundStyle(.tint)
+                Spacer()
+                ListenButton(text: "\(verse.text). \(verse.reference)", id: "verse-\(verse.key)")
+            }
             Text(verse.text)
                 .font(.body.weight(.medium))
                 .lineSpacing(5)

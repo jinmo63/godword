@@ -25,7 +25,7 @@ struct HomeView: View {
                 .padding()
             }
             .background(Color(.systemGroupedBackground))
-            .navigationTitle("말씀의 위로")
+            .navigationTitle("말씀 처방")
             .navigationDestination(for: Mode.self) { mode in
                 InputView(mode: mode)
             }

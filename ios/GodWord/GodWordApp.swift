@@ -17,26 +17,32 @@ struct GodWordApp: App {
 
 struct ContentView: View {
     @AppStorage(Consent.versionKey) private var consentVersion = ""
+    @AppStorage(TextSizeOption.key) private var textSize = TextSizeOption.standard.rawValue
 
     var body: some View {
-        if consentVersion != Consent.version {
-            // 처음 실행했거나 동의 문구가 바뀌었으면 동의부터 받습니다
-            OnboardingView()
-        } else {
-            MainTabView()
+        Group {
+            if consentVersion != Consent.version {
+                // 처음 실행했거나 동의 문구가 바뀌었으면 동의부터 받습니다
+                OnboardingView()
+            } else {
+                MainTabView()
+            }
         }
+        .dynamicTypeSize((TextSizeOption(rawValue: textSize) ?? .standard).range)
     }
 }
 
 struct MainTabView: View {
     var body: some View {
         TabView {
+            TodayView()
+                .tabItem { Label("오늘", systemImage: "sun.max") }
             HomeView()
-                .tabItem { Label("말씀 처방", systemImage: "book") }
+                .tabItem { Label("처방", systemImage: "book") }
             HistoryView()
-                .tabItem { Label("히스토리", systemImage: "clock") }
+                .tabItem { Label("내 기록", systemImage: "books.vertical") }
             SettingsView()
-                .tabItem { Label("설정", systemImage: "gearshape") }
+                .tabItem { Label("나", systemImage: "person.crop.circle") }
         }
     }
 }
