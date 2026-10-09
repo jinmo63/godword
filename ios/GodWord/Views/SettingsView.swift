@@ -25,12 +25,48 @@ struct SettingsView: View {
     @AppStorage(TextSizeOption.key) private var textSize = TextSizeOption.standard.rawValue
     @AppStorage(Consent.versionKey) private var consentVersion = ""
     @AppStorage(Consent.dateKey) private var consentDate = 0.0
+    @AppStorage(Profile.nameKey) private var profileName = ""
+    @AppStorage(Profile.birthdateKey) private var profileBirthdate = 0.0
+    @AppStorage(Profile.hasBirthdateKey) private var hasBirthdate = false
     @Environment(\.modelContext) private var context
     @State private var confirmWithdraw = false
 
     var body: some View {
         NavigationStack {
             Form {
+                Section {
+                    TextField("이름 (선택)", text: Binding(
+                        get: { profileName },
+                        set: { profileName = String($0.prefix(Profile.nameLimit)) }
+                    ))
+                    .textContentType(.givenName)
+                    .submitLabel(.done)
+
+                    Toggle("생년월일 저장", isOn: Binding(
+                        get: { hasBirthdate },
+                        set: { on in
+                            if on && !hasBirthdate { profileBirthdate = Profile.defaultBirthdate.timeIntervalSince1970 }
+                            hasBirthdate = on
+                        }
+                    ))
+                    if hasBirthdate {
+                        DatePicker(
+                            "생년월일",
+                            selection: Binding(
+                                get: { Date(timeIntervalSince1970: profileBirthdate) },
+                                set: { profileBirthdate = $0.timeIntervalSince1970 }
+                            ),
+                            in: ...Date.now,
+                            displayedComponents: .date
+                        )
+                        .environment(\.locale, Locale(identifier: "ko_KR"))
+                    }
+                } header: {
+                    Text("내 정보")
+                } footer: {
+                    Text("한 번만 입력하면 처방할 때마다 다시 묻지 않아요. 이름은 편지와 기도문에, 생년월일은 생년월일 처방에만 쓰이며 이 기기에만 저장돼요.")
+                }
+
                 Section {
                     LabeledContent("오늘 남은 무료 처방", value: remainingToday >= 0 ? "\(remainingToday)회" : "-")
                 } header: {
@@ -76,7 +112,7 @@ struct SettingsView: View {
                 } header: {
                     Text("개인정보")
                 } footer: {
-                    Text("동의를 철회하면 이 기기의 처방 기록이 모두 지워지고 처음 화면으로 돌아가요.")
+                    Text("동의를 철회하면 이 기기의 처방 기록과 내 정보가 모두 지워지고 처음 화면으로 돌아가요.")
                 }
 
                 Section("앱 정보") {
@@ -99,6 +135,15 @@ struct SettingsView: View {
                 Text("이 기기에 저장된 처방 기록이 모두 삭제되며 되돌릴 수 없어요.")
             }
             .scrollDismissesKeyboard(.interactively)
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("완료") {
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    }
+                    .fontWeight(.bold)
+                }
+            }
         }
     }
 
@@ -106,6 +151,9 @@ struct SettingsView: View {
         try? context.delete(model: SavedPrescription.self)
         try? context.save()
         UserDefaults.standard.removeObject(forKey: "remainingToday")
+        profileName = ""
+        profileBirthdate = 0
+        hasBirthdate = false
         consentDate = 0
         consentVersion = "" // ContentView가 다시 동의 화면을 보여줌
     }

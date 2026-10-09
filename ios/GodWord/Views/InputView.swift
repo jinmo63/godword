@@ -8,10 +8,13 @@ struct InputView: View {
     @Environment(\.modelContext) private var context
     @Query(sort: \SavedPrescription.createdAt, order: .reverse) private var history: [SavedPrescription]
 
-    @State private var name = ""
+    @AppStorage(Profile.nameKey) private var profileName = ""
+    @AppStorage(Profile.birthdateKey) private var profileBirthdate = 0.0
+    @AppStorage(Profile.hasBirthdateKey) private var hasBirthdate = false
+
     @State private var text = ""
     @State private var category: String?
-    @State private var birthdate = Calendar.current.date(from: DateComponents(year: 1995, month: 1, day: 1)) ?? .now
+    @State private var birthdate = Profile.defaultBirthdate
 
     @State private var isLoading = false
     @State private var errorMessage: String?
@@ -22,14 +25,9 @@ struct InputView: View {
 
     var body: some View {
         Form {
-            Section {
-                TextField("이름 (선택)", text: $name)
-                    .textContentType(.givenName)
-            } footer: {
-                Text("이름을 적으면 편지와 기도문에 이름을 넣어 드려요.")
-            }
-
             inputSection
+
+            profileSection
 
             Section {
                 Button {
@@ -113,16 +111,39 @@ struct InputView: View {
             }
 
         case .birthdate:
-            Section {
-                DatePicker("생년월일", selection: $birthdate, in: ...Date.now, displayedComponents: .date)
-                    .datePickerStyle(.wheel)
-                    .labelsHidden()
-                    .environment(\.locale, Locale(identifier: "ko_KR"))
-            } header: {
-                Text("생년월일")
-            } footer: {
-                Text("생년월일로 운세를 보지 않아요. 당신을 위한 오늘의 말씀을 고르는 데만 사용해요.")
+            if hasBirthdate {
+                // "나" 탭에 저장된 생년월일을 그대로 씁니다
+                Section {
+                    LabeledContent("생년월일", value: Profile.birthdateText(profileBirthdate))
+                } header: {
+                    Text("생년월일")
+                } footer: {
+                    Text("생년월일로 운세를 보지 않아요. 당신을 위한 오늘의 말씀을 고르는 데만 사용해요. 바꾸려면 \"나\" 탭에서 수정하세요.")
+                }
+            } else {
+                // 처음 한 번만 묻고, 처방을 받으면 "나" 탭에 저장합니다
+                Section {
+                    DatePicker("생년월일", selection: $birthdate, in: ...Date.now, displayedComponents: .date)
+                        .datePickerStyle(.wheel)
+                        .labelsHidden()
+                        .environment(\.locale, Locale(identifier: "ko_KR"))
+                } header: {
+                    Text("생년월일")
+                } footer: {
+                    Text("생년월일로 운세를 보지 않아요. 한 번 입력하면 \"나\" 탭에 저장되어 다음부터는 묻지 않아요.")
+                }
             }
+        }
+    }
+
+    /// 이름 – 입력칸 대신 "나" 탭에 저장된 이름을 보여 줍니다
+    private var profileSection: some View {
+        Section {
+            LabeledContent("이름", value: profileName.isEmpty ? "입력 안 함" : profileName)
+        } footer: {
+            Text(profileName.isEmpty
+                 ? "\"나\" 탭에서 이름을 넣으면 편지와 기도문에 이름을 넣어 드려요."
+                 : "편지와 기도문에 이 이름을 넣어 드려요. \"나\" 탭에서 바꿀 수 있어요.")
         }
     }
 
@@ -135,10 +156,8 @@ struct InputView: View {
         case .category:
             return category ?? ""
         case .birthdate:
-            let f = DateFormatter()
-            f.locale = Locale(identifier: "en_US_POSIX")
-            f.dateFormat = "yyyy-MM-dd"
-            return f.string(from: birthdate)
+            let date = hasBirthdate ? Date(timeIntervalSince1970: profileBirthdate) : birthdate
+            return Profile.birthdateValue(date)
         }
     }
 
@@ -160,7 +179,7 @@ struct InputView: View {
         isLoading = true
         defer { isLoading = false }
 
-        let trimmedName = name.trimmingCharacters(in: .whitespaces)
+        let trimmedName = String(profileName.trimmingCharacters(in: .whitespaces).prefix(Profile.nameLimit))
         do {
             let prescription = try await APIClient().prescribe(
                 mode: mode,
@@ -168,6 +187,10 @@ struct InputView: View {
                 input: inputValue,
                 recent: recentVerses
             )
+            if mode == .birthdate && !hasBirthdate {
+                profileBirthdate = birthdate.timeIntervalSince1970 // 다음부터는 묻지 않음
+                hasBirthdate = true
+            }
             let saved = SavedPrescription(mode: mode, input: inputValue, prescription: prescription)
             context.insert(saved)
             if let usage = prescription.usage {
