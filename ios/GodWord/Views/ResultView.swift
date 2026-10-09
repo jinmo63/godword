@@ -58,6 +58,8 @@ struct ResultView: View {
         .navigationTitle(date.formatted(.dateTime.month().day().hour().minute()))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItemGroup(placement: .topBarTrailing) {
+            HomeButton()
             if isSharing {
                 ProgressView()
             } else if let cardImage {
@@ -74,6 +76,7 @@ struct ResultView: View {
                 } label: {
                     Image(systemName: "square.and.arrow.up")
                 }
+            }
             }
         }
         .alert("공유하지 못했어요", isPresented: Binding(get: { shareError != nil }, set: { if !$0 { shareError = nil } })) {

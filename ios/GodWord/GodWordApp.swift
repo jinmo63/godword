@@ -33,17 +33,27 @@ struct ContentView: View {
 }
 
 struct MainTabView: View {
+    @StateObject private var router = AppRouter()
+
     var body: some View {
-        TabView {
+        TabView(selection: $router.tab) {
             TodayView()
+                .id(router.resetID)
                 .tabItem { Label("오늘", systemImage: "sun.max") }
+                .tag(AppRouter.Tab.today)
             HomeView()
+                .id(router.resetID)
                 .tabItem { Label("처방", systemImage: "book") }
+                .tag(AppRouter.Tab.prescribe)
             HistoryView()
+                .id(router.resetID)
                 .tabItem { Label("내 기록", systemImage: "books.vertical") }
+                .tag(AppRouter.Tab.records)
             SettingsView()
                 .tabItem { Label("나", systemImage: "person.crop.circle") }
+                .tag(AppRouter.Tab.me)
         }
+        .environmentObject(router)
     }
 }
 

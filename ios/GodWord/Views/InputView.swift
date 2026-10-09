@@ -48,6 +48,9 @@ struct InputView: View {
         .navigationBarTitleDisplayMode(.inline)
         .scrollDismissesKeyboard(.interactively)
         .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                HomeButton()
+            }
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
                 Button("완료") {
