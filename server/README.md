@@ -2,7 +2,14 @@
 
 iOS 앱이 호출하는 서버입니다. Claude API 키는 이 서버에만 있고, 앱에는 넣지 않습니다.
 
-## 실행
+## 배포 (Vercel)
+
+- 운영 주소: **https://godword-server.vercel.app** (프로젝트 `godword-server`, 계정 jinmo63)
+- 다시 배포: `npx vercel deploy --prod` (server 폴더에서)
+- 환경변수는 Vercel 프로젝트 설정(Production)에 등록되어 있음: `ANTHROPIC_API_KEY`, `APP_TOKEN`, `CLAUDE_MODEL`, `FREE_DAILY_LIMIT`, `BASIC_DAILY_LIMIT`
+- 모델을 바꾸려면: `npx vercel env add CLAUDE_MODEL production --force` 후 다시 배포
+
+## 로컬 실행
 
 ```bash
 npm run dev      # 개발 모드 (코드를 고치면 바로 반영)
@@ -80,5 +87,5 @@ npm run build && npm start   # 배포와 같은 모드
 - [ ] 사용 횟수를 메모리 대신 Supabase에 저장 (`lib/usage.ts`) – 지금은 서버가 재시작되면 초기화됨
 - [ ] StoreKit 2 구독 상태를 서버에서 확인해 `plan` 정하기 (`app/api/prescribe/route.ts`의 TODO)
 - [ ] 성경 DB 연결: 구절 본문(`text`)을 DB의 본문으로 교체
-- [ ] Vercel 환경변수에 `ANTHROPIC_API_KEY`, `CLAUDE_MODEL=claude-sonnet-5-5` 등록
+- [x] Vercel 배포 및 환경변수 등록 (현재 모델: Haiku – 출시 전 `claude-sonnet-5-5`로 변경)
 - [ ] Anthropic 콘솔에서 월 사용 한도 설정
