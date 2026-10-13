@@ -4,20 +4,18 @@ import SwiftUI
 /// 읽어주기 설정 – "나" 탭에서 바꿉니다
 enum SpeechSettings {
     static let voiceKey = "ttsVoice"   // 비어 있으면 가장 좋은 음성을 자동 선택
-    static let rateKey = "ttsRate"
+    /// 읽는 속도 (기본 속도에 곱하는 배율, 0.6 ~ 1.4)
+    static let rateScaleKey = "ttsRateScale"
+    static let defaultRateScale = 0.95
+    static let rateRange = 0.6...1.4
 
-    enum Rate: String, CaseIterable, Identifiable {
-        case slow = "천천히"
-        case normal = "보통"
-        case fast = "빠르게"
-        var id: String { rawValue }
-
-        var value: Float {
-            switch self {
-            case .slow: AVSpeechUtteranceDefaultSpeechRate * 0.8
-            case .normal: AVSpeechUtteranceDefaultSpeechRate * 0.95
-            case .fast: AVSpeechUtteranceDefaultSpeechRate * 1.1
-            }
+    static func rateLabel(_ scale: Double) -> String {
+        switch scale {
+        case ..<0.75: "아주 천천히"
+        case ..<0.9: "천천히"
+        case ..<1.05: "보통"
+        case ..<1.2: "빠르게"
+        default: "아주 빠르게"
         }
     }
 
@@ -52,7 +50,9 @@ enum SpeechSettings {
     }
 
     static func selectedRate() -> Float {
-        (Rate(rawValue: UserDefaults.standard.string(forKey: rateKey) ?? "") ?? .normal).value
+        let saved = UserDefaults.standard.object(forKey: rateScaleKey) as? Double ?? defaultRateScale
+        let scale = min(max(saved, rateRange.lowerBound), rateRange.upperBound)
+        return AVSpeechUtteranceDefaultSpeechRate * Float(scale)
     }
 }
 
@@ -127,7 +127,7 @@ struct ListenButton: View {
 /// "나" 탭의 읽어주기 설정 구역
 struct SpeechSettingsSection: View {
     @AppStorage(SpeechSettings.voiceKey) private var voiceID = ""
-    @AppStorage(SpeechSettings.rateKey) private var rate = SpeechSettings.Rate.normal.rawValue
+    @AppStorage(SpeechSettings.rateScaleKey) private var rateScale = SpeechSettings.defaultRateScale
     @State private var voices: [AVSpeechSynthesisVoice] = []
 
     private var hasGoodVoice: Bool { voices.contains { $0.quality != .default } }
@@ -140,12 +140,37 @@ struct SpeechSettingsSection: View {
                     Text("\(v.name) · \(SpeechSettings.qualityLabel(v))").tag(v.identifier)
                 }
             }
-            Picker("읽는 속도", selection: $rate) {
-                ForEach(SpeechSettings.Rate.allCases) { Text($0.rawValue).tag($0.rawValue) }
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("읽는 속도")
+                    Spacer()
+                    Text(SpeechSettings.rateLabel(rateScale))
+                        .foregroundStyle(.secondary)
+                }
+                HStack(spacing: 12) {
+                    Image(systemName: "tortoise")
+                        .foregroundStyle(.secondary)
+                        .accessibilityHidden(true)
+                    Slider(value: $rateScale, in: SpeechSettings.rateRange, step: 0.05) { editing in
+                        // 손을 떼면 바뀐 속도로 짧게 들려줌
+                        if !editing { playSample() }
+                    }
+                    .accessibilityLabel("읽는 속도")
+                    .accessibilityValue(SpeechSettings.rateLabel(rateScale))
+                    Image(systemName: "hare")
+                        .foregroundStyle(.secondary)
+                        .accessibilityHidden(true)
+                }
+                Button("보통 속도로 되돌리기") {
+                    rateScale = SpeechSettings.defaultRateScale
+                    playSample()
+                }
+                .font(.footnote)
+                .buttonStyle(.borderless)
             }
-            .pickerStyle(.segmented)
+            .padding(.vertical, 4)
             Button {
-                Speaker.shared.speak("수고하고 무거운 짐 진 자들아 다 내게로 오라. 내가 너희를 쉬게 하리라.", id: "sample")
+                playSample()
             } label: {
                 Label("미리 듣기", systemImage: "play.circle")
             }
@@ -157,5 +182,9 @@ struct SpeechSettingsSection: View {
                  : "지금은 기본 음성만 있어요. 아이폰 설정 → 손쉬운 사용 → 읽기 및 말하기 → 음성 → 한국어에서 \"향상됨\" 또는 \"고품질\" 음성을 내려받으면 훨씬 자연스러워져요.")
         }
         .onAppear { voices = SpeechSettings.koreanVoices }
+    }
+
+    private func playSample() {
+        Speaker.shared.speak("수고하고 무거운 짐 진 자들아 다 내게로 오라. 내가 너희를 쉬게 하리라.", id: "sample")
     }
 }
