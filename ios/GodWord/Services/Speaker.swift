@@ -26,6 +26,11 @@ enum SpeechSettings {
             .sorted { rank($0) > rank($1) || (rank($0) == rank($1) && $0.name < $1.name) }
     }
 
+    /// 기본보다 좋은(향상됨·고품질) 한국어 음성이 설치되어 있는지
+    static var hasGoodVoice: Bool {
+        koreanVoices.contains { $0.quality != .default }
+    }
+
     static func rank(_ v: AVSpeechSynthesisVoice) -> Int {
         switch v.quality {
         case .premium: 3
@@ -110,17 +115,27 @@ struct ListenButton: View {
     let text: String
     let id: String
     @ObservedObject private var speaker = Speaker.shared
+    @AppStorage(VoiceGuideView.shownKey) private var guideShown = false
+    @State private var showGuide = false
 
     var body: some View {
         let speaking = speaker.speakingID == id
         Button {
-            speaker.toggle(text, id: id)
+            // 기본 음성만 있으면 처음 한 번은 고음질 음성 받는 방법을 먼저 안내
+            if !speaking && !guideShown && !SpeechSettings.hasGoodVoice {
+                showGuide = true
+            } else {
+                speaker.toggle(text, id: id)
+            }
         } label: {
             Label(speaking ? "멈춤" : "듣기", systemImage: speaking ? "stop.fill" : "speaker.wave.2.fill")
         }
         .buttonStyle(.bordered)
         .controlSize(.small)
         .onDisappear { if speaking { speaker.stop() } }
+        .sheet(isPresented: $showGuide) {
+            VoiceGuideView(onListenNow: { speaker.speak(text, id: id) })
+        }
     }
 }
 
@@ -129,6 +144,7 @@ struct SpeechSettingsSection: View {
     @AppStorage(SpeechSettings.voiceKey) private var voiceID = ""
     @AppStorage(SpeechSettings.rateScaleKey) private var rateScale = SpeechSettings.defaultRateScale
     @State private var voices: [AVSpeechSynthesisVoice] = []
+    @State private var showGuide = false
 
     private var hasGoodVoice: Bool { voices.contains { $0.quality != .default } }
 
@@ -174,14 +190,22 @@ struct SpeechSettingsSection: View {
             } label: {
                 Label("미리 듣기", systemImage: "play.circle")
             }
+            Button {
+                showGuide = true
+            } label: {
+                Label("더 자연스러운 목소리 받는 방법", systemImage: "questionmark.circle")
+            }
         } header: {
             Text("읽어주기")
         } footer: {
             Text(hasGoodVoice
-                 ? "더 자연스러운 목소리는 아이폰 설정 → 손쉬운 사용 → 읽기 및 말하기 → 음성 → 한국어에서 추가로 받을 수 있어요."
-                 : "지금은 기본 음성만 있어요. 아이폰 설정 → 손쉬운 사용 → 읽기 및 말하기 → 음성 → 한국어에서 \"향상됨\" 또는 \"고품질\" 음성을 내려받으면 훨씬 자연스러워져요.")
+                 ? "고음질 목소리를 쓰고 있어요. 다른 목소리도 같은 방법으로 더 받을 수 있어요."
+                 : "지금은 기본 목소리만 있어요. 위 \"더 자연스러운 목소리 받는 방법\"을 눌러 고음질 목소리를 받아 보세요.")
         }
         .onAppear { voices = SpeechSettings.koreanVoices }
+        .sheet(isPresented: $showGuide, onDismiss: { voices = SpeechSettings.koreanVoices }) {
+            VoiceGuideView()
+        }
     }
 
     private func playSample() {
