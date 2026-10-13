@@ -84,8 +84,10 @@ struct SettingsView: View {
                 } header: {
                     Text("화면")
                 } footer: {
-                    Text("글씨가 작게 느껴지면 \"크게\"나 \"아주 크게\"를 골라 보세요. 말씀과 기도문은 \"듣기\" 버튼으로 들을 수 있어요.")
+                    Text("글씨가 작게 느껴지면 \"크게\"나 \"아주 크게\"를 골라 보세요.")
                 }
+
+                SpeechSettingsSection()
 
                 Section("도움이 필요할 때") {
                     Link(destination: URL(string: "tel:109")!) {
