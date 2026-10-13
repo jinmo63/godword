@@ -14,7 +14,7 @@ struct InputView: View {
 
     @State private var text = ""
     @State private var category: String?
-    @State private var birthdate = Profile.defaultBirthdate
+    @State private var birthdate = Profile.storedOrDefaultBirthdate
 
     @State private var isLoading = false
     @State private var errorMessage: String?

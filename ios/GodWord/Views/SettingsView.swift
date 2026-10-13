@@ -42,10 +42,13 @@ struct SettingsView: View {
                     .textContentType(.givenName)
                     .submitLabel(.done)
 
-                    Toggle("생년월일 저장", isOn: Binding(
+                    Toggle("생년월일 사용", isOn: Binding(
                         get: { hasBirthdate },
                         set: { on in
-                            if on && !hasBirthdate { profileBirthdate = Profile.defaultBirthdate.timeIntervalSince1970 }
+                            // 처음 켤 때만 기본값을 넣고, 숨겼다 다시 켜면 예전 날짜를 그대로 보여 줌
+                            if on && !Profile.hasStoredBirthdate {
+                                profileBirthdate = Profile.defaultBirthdate.timeIntervalSince1970
+                            }
                             hasBirthdate = on
                         }
                     ))
@@ -60,11 +63,24 @@ struct SettingsView: View {
                             displayedComponents: .date
                         )
                         .environment(\.locale, Locale(identifier: "ko_KR"))
+                    } else if Profile.hasStoredBirthdate {
+                        HStack {
+                            Label("생년월일 숨김", systemImage: "eye.slash")
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            Button("완전히 지우기", role: .destructive) {
+                                UserDefaults.standard.removeObject(forKey: Profile.birthdateKey)
+                                profileBirthdate = 0
+                                UserDefaults.standard.removeObject(forKey: Profile.birthdateKey)
+                            }
+                            .buttonStyle(.borderless)
+                            .font(.footnote)
+                        }
                     }
                 } header: {
                     Text("내 정보")
                 } footer: {
-                    Text("한 번만 입력하면 처방할 때마다 다시 묻지 않아요. 이름은 편지와 기도문에, 생년월일은 생년월일 처방에만 쓰이며 이 기기에만 저장돼요.")
+                    Text("한 번만 입력하면 처방할 때마다 다시 묻지 않아요. 생년월일을 끄면 화면과 처방에서 숨겨지고, 다시 켜면 예전 날짜가 그대로 돌아와요. 모든 정보는 이 기기에만 저장돼요.")
                 }
 
                 Section {
@@ -154,7 +170,7 @@ struct SettingsView: View {
         try? context.save()
         UserDefaults.standard.removeObject(forKey: "remainingToday")
         profileName = ""
-        profileBirthdate = 0
+        UserDefaults.standard.removeObject(forKey: Profile.birthdateKey)
         hasBirthdate = false
         consentDate = 0
         consentVersion = "" // ContentView가 다시 동의 화면을 보여줌

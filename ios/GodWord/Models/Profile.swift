@@ -10,6 +10,18 @@ enum Profile {
     static let hasBirthdateKey = "profileHasBirthdate"
     static let nameLimit = 20
 
+    /// 생년월일을 한 번이라도 입력했는지 (숨겨도 값은 남아 있음)
+    static var hasStoredBirthdate: Bool {
+        UserDefaults.standard.object(forKey: birthdateKey) != nil
+    }
+
+    /// 저장된 생년월일, 없으면 기본값
+    static var storedOrDefaultBirthdate: Date {
+        hasStoredBirthdate
+            ? Date(timeIntervalSince1970: UserDefaults.standard.double(forKey: birthdateKey))
+            : defaultBirthdate
+    }
+
     static var defaultBirthdate: Date {
         Calendar.current.date(from: DateComponents(year: 1980, month: 1, day: 1)) ?? .now
     }
