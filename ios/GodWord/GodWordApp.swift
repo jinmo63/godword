@@ -50,7 +50,7 @@ struct MainTabView: View {
                 .tabItem { Label("내 기록", systemImage: "books.vertical") }
                 .tag(AppRouter.Tab.records)
             SettingsView()
-                .tabItem { Label("나", systemImage: "person.crop.circle") }
+                .tabItem { Label("설정", systemImage: "gearshape") }
                 .tag(AppRouter.Tab.me)
         }
         .environmentObject(router)

@@ -115,16 +115,16 @@ struct InputView: View {
 
         case .birthdate:
             if hasBirthdate {
-                // "나" 탭에 저장된 생년월일을 그대로 씁니다
+                // "설정" 탭에 저장된 생년월일을 그대로 씁니다
                 Section {
                     LabeledContent("생년월일", value: Profile.birthdateText(profileBirthdate))
                 } header: {
                     Text("생년월일")
                 } footer: {
-                    Text("생년월일로 운세를 보지 않아요. 당신을 위한 오늘의 말씀을 고르는 데만 사용해요. 바꾸려면 \"나\" 탭에서 수정하세요.")
+                    Text("생년월일로 운세를 보지 않아요. 당신을 위한 오늘의 말씀을 고르는 데만 사용해요. 바꾸려면 \"설정\" 탭에서 수정하세요.")
                 }
             } else {
-                // 처음 한 번만 묻고, 처방을 받으면 "나" 탭에 저장합니다
+                // 처음 한 번만 묻고, 처방을 받으면 "설정" 탭에 저장합니다
                 Section {
                     DatePicker("생년월일", selection: $birthdate, in: ...Date.now, displayedComponents: .date)
                         .datePickerStyle(.wheel)
@@ -133,20 +133,20 @@ struct InputView: View {
                 } header: {
                     Text("생년월일")
                 } footer: {
-                    Text("생년월일로 운세를 보지 않아요. 한 번 입력하면 \"나\" 탭에 저장되어 다음부터는 묻지 않아요.")
+                    Text("생년월일로 운세를 보지 않아요. 한 번 입력하면 \"설정\" 탭에 저장되어 다음부터는 묻지 않아요.")
                 }
             }
         }
     }
 
-    /// 이름 – 입력칸 대신 "나" 탭에 저장된 이름을 보여 줍니다
+    /// 이름 – 입력칸 대신 "설정" 탭에 저장된 이름을 보여 줍니다
     private var profileSection: some View {
         Section {
             LabeledContent("이름", value: profileName.isEmpty ? "입력 안 함" : profileName)
         } footer: {
             Text(profileName.isEmpty
-                 ? "\"나\" 탭에서 이름을 넣으면 편지와 기도문에 이름을 넣어 드려요."
-                 : "편지와 기도문에 이 이름을 넣어 드려요. \"나\" 탭에서 바꿀 수 있어요.")
+                 ? "\"설정\" 탭에서 이름을 넣으면 편지와 기도문에 이름을 넣어 드려요."
+                 : "편지와 기도문에 이 이름을 넣어 드려요. \"설정\" 탭에서 바꿀 수 있어요.")
         }
     }
 

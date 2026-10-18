@@ -1,7 +1,7 @@
 import AVFoundation
 import SwiftUI
 
-/// 읽어주기 설정 – "나" 탭에서 바꿉니다
+/// 읽어주기 설정 – "설정" 탭에서 바꿉니다
 enum SpeechSettings {
     static let voiceKey = "ttsVoice"   // 비어 있으면 가장 좋은 음성을 자동 선택
     /// 읽는 속도 (기본 속도에 곱하는 배율, 0.6 ~ 1.4)
@@ -139,7 +139,7 @@ struct ListenButton: View {
     }
 }
 
-/// "나" 탭의 읽어주기 설정 구역
+/// "설정" 탭의 읽어주기 설정 구역
 struct SpeechSettingsSection: View {
     @AppStorage(SpeechSettings.voiceKey) private var voiceID = ""
     @AppStorage(SpeechSettings.rateScaleKey) private var rateScale = SpeechSettings.defaultRateScale

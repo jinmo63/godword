@@ -2,7 +2,7 @@ import SwiftUI
 
 /// 고음질 한국어 음성 받는 방법 안내
 /// - 기본 음성만 있는 사용자가 처음 "듣기"를 누를 때 한 번 자동으로 보여 줌
-/// - "나" 탭 → 읽어주기에서 언제든 다시 열 수 있음
+/// - "설정" 탭 → 읽어주기에서 언제든 다시 열 수 있음
 struct VoiceGuideView: View {
     static let shownKey = "voiceGuideShown"
 

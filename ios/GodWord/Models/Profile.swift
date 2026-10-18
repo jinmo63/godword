@@ -1,6 +1,6 @@
 import Foundation
 
-/// 내 정보 – "나" 탭에서 한 번만 입력하고, 처방할 때마다 다시 묻지 않습니다.
+/// 내 정보 – "설정" 탭에서 한 번만 입력하고, 처방할 때마다 다시 묻지 않습니다.
 /// 이 기기에만 저장되며, 처방을 요청할 때만 서버로 보냅니다.
 enum Profile {
     static let nameKey = "profileName"

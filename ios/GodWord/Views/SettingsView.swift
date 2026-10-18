@@ -19,7 +19,7 @@ enum TextSizeOption: String, CaseIterable, Identifiable {
     }
 }
 
-/// "나" 탭 – 이용 현황, 화면, 도움, 개인정보, 앱 정보 (개발 빌드에서만 개발자 설정)
+/// "설정" 탭 – 이용 현황, 화면, 도움, 개인정보, 앱 정보 (개발 빌드에서만 개발자 설정)
 struct SettingsView: View {
     @AppStorage("remainingToday") private var remainingToday = -1
     @AppStorage(TextSizeOption.key) private var textSize = TextSizeOption.standard.rawValue
@@ -141,7 +141,7 @@ struct SettingsView: View {
                 DeveloperSection()
                 #endif
             }
-            .navigationTitle("나")
+            .navigationTitle("설정")
             .confirmationDialog(
                 "동의를 철회할까요?",
                 isPresented: $confirmWithdraw,
