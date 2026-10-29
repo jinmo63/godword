@@ -211,6 +211,7 @@ private struct DeveloperSection: View {
             }
             Button("기본값으로 되돌리기") { serverURL = APIClient.defaultServerURL }
             LabeledContent("기기 ID", value: String(APIClient.deviceID.prefix(8)))
+            NavigationLink("아이폰 AI(온디바이스) 테스트") { OnDeviceAITestView() }
         } header: {
             Text("개발자 설정")
         } footer: {
